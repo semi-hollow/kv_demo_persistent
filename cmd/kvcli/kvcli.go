@@ -1,27 +1,3 @@
-//
-// MIT License
-
-// Copyright (c) 2022 eraft dev group
-
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-
 package main
 
 import (
@@ -31,8 +7,11 @@ import (
 	"math/big"
 	"os"
 	"os/signal"
+	"raft_grpc_leveldb/common"
 	"raft_grpc_leveldb/raftcore"
 	pb "raft_grpc_leveldb/raftpb"
+	"strconv"
+	"time"
 )
 
 type KvClient struct {
@@ -74,8 +53,8 @@ func (kvCli *KvClient) Get(key string) string {
 		return "err"
 	}
 	fmt.Println("key value is:", resp.Value)
-	fmt.Println("leader_id is:", resp.LeaderId)
-	fmt.Println("error_code is:", resp.ErrCode)
+	//fmt.Println("leader_id is:", resp.LeaderId)
+	//fmt.Println("error_code is:", resp.ErrCode)
 
 	return resp.Value
 }
@@ -91,7 +70,8 @@ func (kvCli *KvClient) Put(key, value string) string {
 	if err != nil {
 		return "err"
 	}
-	return "put ok, now the key value is updated to:"
+	//return "put ok, now the key value is updated to:"
+	return "ok"
 }
 
 func main() {
@@ -103,10 +83,10 @@ func main() {
 
 	kvCli := MakeKvClient(99, os.Args[1])
 
-	//count, err := strconv.Atoi(os.Args[2])
-	//if err != nil {
-	//	panic(err)
-	//}
+	count, err := strconv.Atoi(os.Args[2])
+	if err != nil {
+		panic(err)
+	}
 
 	op := os.Args[3]
 
@@ -120,23 +100,25 @@ func main() {
 		os.Exit(-1)
 	}()
 
-	//keys := make([]string, count)
-	//vals := make([]string, count)
+	keys := make([]string, count)
+	vals := make([]string, count)
 
-	//for i := 0; i < count; i++ {
-	//	rndK := common.RandStringRunes(8)
-	//	rndV := common.RandStringRunes(8)
-	//	keys[i] = rndK
-	//	vals[i] = rndV
-	//}
-	//
-	//startTs := time.Now()
-	//for i := 0; i < count; i++ {
-	//	//fmt.Println(kvCli.Put(keys[i], vals[i]))
-	//	//fmt.Println(kvCli.Get(keys[i]))
-	//}
-	//elapsed := time.Since(startTs).Seconds()
-	//fmt.Printf("total cost %f s\n", elapsed)
+	for i := 0; i < count; i++ {
+		rndK := common.RandStringRunes(8)
+		rndV := common.RandStringRunes(8)
+		keys[i] = rndK
+		vals[i] = rndV
+	}
+
+	startTs := time.Now()
+	for i := 0; i < count; i++ {
+		//fmt.Println(kvCli.Put(keys[i], vals[i]))
+		//fmt.Println(kvCli.Get(keys[i]))
+		kvCli.Put(keys[i], vals[i])
+		kvCli.Get(keys[i])
+	}
+	elapsed := time.Since(startTs).Seconds()
+	fmt.Printf("total cost %f s\n", elapsed)
 
 	switch op {
 	case "get":

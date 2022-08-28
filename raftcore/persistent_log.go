@@ -1,27 +1,3 @@
-//
-// MIT License
-
-// Copyright (c) 2022 eraft dev group
-
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-//
 // this file defines the models that raft needs to persist and their operations
 //
 //
@@ -32,10 +8,20 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"fmt"
+	"sync"
 
 	pb "raft_grpc_leveldb/raftpb"
 	"raft_grpc_leveldb/storage_eng"
 )
+
+type RaftLog struct {
+	mu         sync.RWMutex
+	firstIdx   uint64
+	lastIdx    uint64
+	appliedIdx int64
+	dbEng      storage_eng.KvStore
+	items      []*pb.Entry
+}
 
 type RaftPersistenState struct {
 	CurTerm  int64
@@ -195,17 +181,17 @@ func (rfLog *RaftLog) GetFirst() *pb.Entry {
 	return DecodeEntry(vBytes)
 }
 
-// func (rfLog *RaftLog) SetFirstLog(index int64, term int64) error {
-// 	rfLog.mu.Lock()
-// 	defer rfLog.mu.Unlock()
-// 	empEnt := &pb.Entry{
-// 		Index: index,
-// 		Term:  uint64(term),
-// 		Data:  make([]byte, 0),
-// 	}
-// 	empEntEncode := EncodeEntry(empEnt)
-// 	return rfLog.dbEng.PutBytesKv(EncodeRaftLogKey(uint64(index)), empEntEncode)
-// }
+//func (rfLog *RaftLog) SetFirstLog(index int64, term int64) error {
+//	rfLog.mu.Lock()
+//	defer rfLog.mu.Unlock()
+//	empEnt := &pb.Entry{
+//		Index: index,
+//		Term:  uint64(term),
+//		Data:  make([]byte, 0),
+//	}
+//	empEntEncode := EncodeEntry(empEnt)
+//	return rfLog.dbEng.PutBytesKv(EncodeRaftLogKey(uint64(index)), empEntEncode)
+//}
 
 //
 // GetLast
